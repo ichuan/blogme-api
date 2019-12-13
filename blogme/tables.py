@@ -33,9 +33,3 @@ Article = sa.Table(
     # https://github.com/encode/databases/issues/72
     sa.Column('created_at', sa.DateTime, default=datetime.datetime.utcnow),
 )
-
-
-if __name__ == '__main__':
-    from sqlalchemy.sql import delete
-    query = delete(Article).where(Article.c.id == 1).limit(1)
-    print(query)
