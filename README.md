@@ -17,6 +17,8 @@ python blogme/cmd.py create superuser
 pipenv install -e .
 ```
 
+Docs at http://127.0.0.1:8000/docs
+
 
 # Develop
 
