@@ -96,9 +96,11 @@ async def upload_file(
     f: UploadFile = File(...), user: UserInDB = Depends(auth.get_current_user)
 ):
     dest_dir = settings.BASE_DIR.joinpath(settings.MEDIA_DIR_TEMP)
-    ext = mimetypes.guess_extension(f.content_type)
-    if not ext:
-        ext = '.' + f.filename.rpartition('.')[-1]
+    _, *exts = f.filename.rsplit('.', 1)
+    if exts:
+        ext = f'.{exts[0].lower()}'
+    else:
+        ext = mimetypes.guess_extension(f.content_type) or ''
     filename = f'{utils.random_hex()}{ext}'
     await utils.save_uploaded_file(f, dest_dir.joinpath(filename))
     return {'url': f'{settings.MEDIA_URL}{filename}'}
