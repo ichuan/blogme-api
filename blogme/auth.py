@@ -18,7 +18,7 @@ from blogme.tables import User
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 database = utils.get_db()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/account/access-token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/users/access-token')
 
 
 async def authenticate_user(username: str, password: str) -> Optional[UserInDB]:
@@ -67,10 +67,10 @@ def verify_password(password, hashed) -> bool:
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     user = await decode_access_token(token)
     if not user:
-        raise utils.error(
+        raise utils.HTTP401(
             detail='Invalid authentication credentials',
-            headers={'WWW-Authenticate': 'Bearer'}
+            headers={'WWW-Authenticate': 'Bearer'},
         )
     if not user.is_active:
-        raise utils.error(detail='Inactive user')
+        raise utils.HTTP401(detail='Inactive user')
     return user
