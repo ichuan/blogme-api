@@ -2,7 +2,6 @@
 # coding: utf-8
 # yc@2019/12/11
 
-import os
 import pathlib
 
 
@@ -19,5 +18,4 @@ ALGORITHM = 'HS256'
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
 MEDIA_DIR = 'public/upload/'
-MEDIA_DIR_TEMP = f'{MEDIA_DIR}/t/'
 MEDIA_URL = '/public/upload/'

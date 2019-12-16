@@ -95,7 +95,7 @@ async def article_delete(
 async def upload_file(
     f: UploadFile = File(...), user: UserInDB = Depends(auth.get_current_user)
 ):
-    dest_dir = settings.BASE_DIR.joinpath(settings.MEDIA_DIR_TEMP)
+    dest_dir = settings.BASE_DIR.joinpath(settings.MEDIA_DIR)
     _, *exts = f.filename.rsplit('.', 1)
     if exts:
         ext = f'.{exts[0].lower()}'
