@@ -16,16 +16,13 @@ Options:
 '''
 
 
-import sqlalchemy
-from sqlalchemy import update
 from docopt import docopt
-
-from blogme.settings import DATABASE_URL
-from blogme.tables import User, metadata
-from blogme.auth import hash_password
 
 
 def get_db():
+    import sqlalchemy
+    from blogme.settings import DATABASE_URL
+
     return sqlalchemy.create_engine(DATABASE_URL.replace('mysql', 'mysql+pymysql'))
 
 
@@ -34,6 +31,8 @@ if __name__ == '__main__':
 
     if args['tables']:
         engine = get_db()
+        from blogme.tables import metadata
+
         if args['create']:
             print('Creating tables...')
             metadata.create_all(engine)
@@ -41,6 +40,9 @@ if __name__ == '__main__':
             print('Dropping tables...')
             metadata.drop_all(engine)
     elif args['create'] and args['superuser']:
+        from blogme.tables import User
+        from blogme.auth import hash_password
+
         query = User.insert().values(
             username=args['--username'],
             password=hash_password(args['--password']),
@@ -49,9 +51,13 @@ if __name__ == '__main__':
         res = get_db().connect().execute(query)
         print(f'Created superuser with id: {res.inserted_primary_key}')
     elif args['changepassword']:
+        from sqlalchemy import update
+        from blogme.tables import User
+        from blogme.auth import hash_password
+
         get_db().connect().execute(
-            update(User).where(
-                User.c.username == args['<username>']
-            ).values(password=hash_password(args['<password>']))
+            update(User)
+            .where(User.c.username == args['<username>'])
+            .values(password=hash_password(args['<password>']))
         )
         print(f'Password changed for {args["<username>"]}')
