@@ -19,9 +19,9 @@ database = utils.get_db()
 
 async def is_article_belongs_to_user(article_id, user_id):
     row = await database.fetch_one(
-        select([Article.c.id]).where(
-            Article.c.id == article_id
-        ).where(Article.c.user_id == user_id)
+        select([Article.c.id])
+        .where(Article.c.id == article_id)
+        .where(Article.c.user_id == user_id)
     )
     return bool(row)
 
@@ -34,8 +34,7 @@ async def article_list():
 
 @router.post('/', response_model=ArticleRead)
 async def article_create(
-    article: ArticleCreate,
-    user: UserInDB = Depends(auth.get_current_user)
+    article: ArticleCreate, user: UserInDB = Depends(auth.get_current_user)
 ):
     created_at = utils.now()
     spec = {
@@ -64,13 +63,11 @@ async def article_detail(article_id: int):
 async def article_update(
     article_id: int,
     article: ArticleUpdate,
-    user: UserInDB = Depends(auth.get_current_user)
+    user: UserInDB = Depends(auth.get_current_user),
 ):
     if await is_article_belongs_to_user(article_id, user.id):
         await database.execute(
-            update(Article).where(
-                Article.c.id == article_id
-            ).values(**article.dict())
+            update(Article).where(Article.c.id == article_id).values(**article.dict())
         )
         return article
     raise utils.HTTP400(detail='No such article')
@@ -78,14 +75,11 @@ async def article_update(
 
 @router.delete('/{article_id}')
 async def article_delete(
-    article_id: int,
-    user: UserInDB = Depends(auth.get_current_user)
+    article_id: int, user: UserInDB = Depends(auth.get_current_user)
 ):
     if await is_article_belongs_to_user(article_id, user.id):
-        await database.execute(
-            delete(Article).where(
-                Article.c.id == article_id
-            )
+        count = await database.execute(
+            delete(Article).where(Article.c.id == article_id)
         )
-        return {'ok': 'ok'}
+        return {'success': bool(count)}
     raise utils.HTTP400(detail='No such article')

@@ -8,27 +8,30 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 
-class UserBase(BaseModel):
+class _Base(BaseModel):
+    '''
+    DB, Create, Update 三状态下共享的字段
+    '''
+
     username: str
     email: Optional[EmailStr] = None
-    is_active: bool = True
     is_superuser: bool = False
+
+
+class UserRead(_Base):
+    id: int
+    is_active: bool = True
     last_login: Optional[datetime.datetime] = None
     date_joined: datetime.datetime
 
 
-class UserInDB(UserBase):
-    id: int
+class UserInDB(UserRead):
     password: str
 
 
-class UserRead(UserBase):
-    pass
-
-
-class UserCreate(UserBase):
+class UserCreate(_Base):
     password: str
 
 
-class UserUpdate(UserBase):
-    password: str
+class UserUpdate(_Base):
+    password: Optional[str]

@@ -5,7 +5,7 @@
 from fastapi import FastAPI
 
 from blogme import utils
-from blogme.routers import account, users, articles
+from blogme.routers import users, articles
 
 
 app = FastAPI()
@@ -22,6 +22,5 @@ async def shutdown():
     await database.disconnect()
 
 
-app.include_router(account.router, prefix='/account', tags=['Account'])
 app.include_router(users.router, prefix='/users', tags=['User'])
 app.include_router(articles.router, prefix='/articles', tags=['Article'])
