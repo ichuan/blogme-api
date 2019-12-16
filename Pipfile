@@ -18,6 +18,7 @@ docopt = "*"
 python-multipart = "*"
 pyjwt = "*"
 passlib = {extras = ["bcrypt"],version = "*"}
+aiofiles = "*"
 
 [requires]
 python_version = "3.7"

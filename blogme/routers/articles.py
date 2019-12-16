@@ -2,14 +2,20 @@
 # coding: utf-8
 # yc@2019/12/13
 
+import mimetypes
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.sql import select, update, delete
 
 from blogme import settings, utils, auth
 from blogme.tables import Article
-from blogme.models.article import ArticleRead, ArticleCreate, ArticleUpdate
+from blogme.models.article import (
+    ArticleRead,
+    ArticleCreate,
+    ArticleUpdate,
+    ArticleFile,
+)
 from blogme.models.user import UserInDB
 
 
@@ -83,3 +89,16 @@ async def article_delete(
         )
         return {'success': bool(count)}
     raise utils.HTTP400(detail='No such article')
+
+
+@router.post('/upload/file', response_model=ArticleFile)
+async def upload_file(
+    f: UploadFile = File(...), user: UserInDB = Depends(auth.get_current_user)
+):
+    dest_dir = settings.BASE_DIR.joinpath(settings.MEDIA_DIR_TEMP)
+    ext = mimetypes.guess_extension(f.content_type)
+    if not ext:
+        ext = '.' + f.filename.rpartition('.')[-1]
+    filename = f'{utils.random_hex()}{ext}'
+    await utils.save_uploaded_file(f, dest_dir.joinpath(filename))
+    return {'url': f'{settings.MEDIA_URL}{filename}'}

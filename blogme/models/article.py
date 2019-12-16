@@ -7,16 +7,16 @@ import datetime
 from pydantic import BaseModel
 
 
-class ArticleBase(BaseModel):
+class _Base(BaseModel):
     subject: str
     content: str
 
 
-class ArticleCreate(ArticleBase):
+class ArticleCreate(_Base):
     pass
 
 
-class ArticleInDB(ArticleBase):
+class ArticleInDB(_Base):
     id: int
     user_id: int
     created_at: datetime.datetime
@@ -26,5 +26,9 @@ class ArticleRead(ArticleInDB):
     pass
 
 
-class ArticleUpdate(ArticleBase):
+class ArticleUpdate(_Base):
     pass
+
+
+class ArticleFile(BaseModel):
+    url: str
