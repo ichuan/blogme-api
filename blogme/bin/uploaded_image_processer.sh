@@ -17,6 +17,7 @@ UPLOAD_DIR="`dirname ${SCRIPT_DIR}`/public/upload"
 process_image() {
   img="$1"
   flag="${img}.__PROCESSED__"
+  [ ! -f "$img" ] && return
   [ -f "$flag" ] || {
     touch "$flag"
     echo "Processing $img"
