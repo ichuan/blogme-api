@@ -32,13 +32,13 @@ async def is_article_belongs_to_user(article_id, user_id):
     return bool(row)
 
 
-@router.get('/', response_model=List[ArticleRead])
+@router.get('', response_model=List[ArticleRead])
 async def article_list():
     query = select([Article]).limit(settings.PAGE_SIZE).order_by(Article.c.id.desc())
     return await database.fetch_all(query)
 
 
-@router.post('/', response_model=ArticleRead)
+@router.post('', response_model=ArticleRead)
 async def article_create(
     article: ArticleCreate, user: UserInDB = Depends(auth.get_current_user)
 ):
@@ -91,7 +91,7 @@ async def article_delete(
     raise utils.HTTP400(detail='No such article')
 
 
-@router.post('/upload/file', response_model=ArticleFile)
+@router.post('/upload', response_model=ArticleFile)
 async def upload_file(
     f: UploadFile = File(...), user: UserInDB = Depends(auth.get_current_user)
 ):

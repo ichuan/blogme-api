@@ -19,13 +19,13 @@ router = APIRouter()
 database = utils.get_db()
 
 
-@router.get('/', response_model=List[UserRead])
+@router.get('', response_model=List[UserRead])
 async def user_list():
     query = select([User]).limit(settings.PAGE_SIZE).order_by(User.c.id.desc())
     return await database.fetch_all(query)
 
 
-@router.post('/', response_model=UserRead)
+@router.post('', response_model=UserRead)
 async def create_user(user: UserCreate, me: UserInDB = Depends(auth.get_current_user)):
     if not me.is_superuser:
         raise utils.HTTP400(detail='Only superuser can create a user')
