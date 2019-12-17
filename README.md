@@ -3,6 +3,12 @@
 
 # Setup
 
+Deps:
+
+- [fswatch](https://github.com/emcrisostomo/fswatch/) 
+- imagemagick (convert)
+
+
 ```sh
 # create database
 mysql -uroot -e 'CREATE DATABASE blogme CHARACTER SET utf8;'
