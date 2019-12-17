@@ -93,7 +93,8 @@ async def article_delete(
 
 @router.post('/upload', response_model=ArticleFile)
 async def upload_file(
-    f: UploadFile = File(...), user: UserInDB = Depends(auth.get_current_user)
+    f: UploadFile = File(..., alias='file'),
+    user: UserInDB = Depends(auth.get_current_user),
 ):
     dest_dir = settings.BASE_DIR.joinpath(settings.MEDIA_DIR)
     _, *exts = f.filename.rsplit('.', 1)

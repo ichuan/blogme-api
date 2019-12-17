@@ -36,9 +36,11 @@ def random_hex(length=16):
 
 async def save_uploaded_file(src_file, dest_path):
     await src_file.seek(0)
-    async with aiofiles.open(dest_path, 'wb+') as f:
+    tmp_path = f'{dest_path}.swp'
+    async with aiofiles.open(tmp_path, 'wb+') as f:
         while True:
             data = await src_file.read(CHUNK_SIZE)
             if not data:
                 break
             await f.write(data)
+    os.replace(tmp_path, dest_path)
