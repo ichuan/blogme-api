@@ -4,8 +4,9 @@
 
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
+from starlette.requests import Request
 from sqlalchemy import func
 from sqlalchemy.sql import update, select, delete
 
@@ -26,10 +27,20 @@ async def user_list(me: UserInDB = Depends(auth.get_current_user)):
 
 
 @router.post('', response_model=UserRead)
-async def create_user(user: UserCreate, me: UserInDB = Depends(auth.get_current_user)):
-    if not me.is_superuser:
-        raise utils.HTTP400(detail='Only superuser can create a user')
+async def create_user(user: UserCreate, request: Request):
     spec = user.dict()
+    me: UserInDB = None
+    try:
+        token: str = await auth.oauth2_scheme(request)
+        me = await auth.decode_access_token(token)
+    except HTTPException:
+        # not authed
+        if await has_no_users_yet():
+            spec['is_superuser'] = True
+        else:
+            raise
+    if me and not me.is_superuser:
+        raise utils.HTTP400(detail='Only superuser can create a user')
     spec.update(
         {
             'password': auth.hash_password(user.password),
@@ -129,3 +140,8 @@ async def user_delete(user_id: int, me: UserInDB = Depends(auth.get_current_user
     # delete user
     count = await database.execute(delete(User).where(User.c.id == user_id))
     return {'success': bool(count)}
+
+
+async def has_no_users_yet():
+    row = await database.fetch_one(select([func.count()]).select_from(User))
+    return bool(row[0] == 0)
