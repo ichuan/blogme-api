@@ -30,10 +30,6 @@ def now():
     return datetime.utcnow()
 
 
-def random_hex(length=16):
-    return os.urandom(length).hex()
-
-
 async def save_uploaded_file(src_file, dest_path):
     await src_file.seek(0)
     tmp_path = f'{dest_path}.swp'

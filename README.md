@@ -14,10 +14,10 @@ Deps:
 mysql -uroot -e 'CREATE DATABASE blogme CHARACTER SET utf8;'
 
 # create database tables
-python blogme/cmd.py create tables
+python blogme/bin/cmd.py create tables
 
 # create superuser (username: root, password: R00t!)
-python blogme/cmd.py create superuser
+python blogme/bin/cmd.py create superuser
 
 # install self
 pipenv install -e .

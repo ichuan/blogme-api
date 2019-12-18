@@ -8,6 +8,7 @@ Usage:
     cmd.py drop tables
     cmd.py create superuser [--username=NAME] [--password=PASS]
     cmd.py changepassword <username> <password>
+    cmd.py import wordpress <path_to_Wordpress.xml>
 
 Options:
     -h --help         Show this screen
@@ -24,6 +25,37 @@ def get_db():
     from blogme.settings import DATABASE_URL
 
     return sqlalchemy.create_engine(DATABASE_URL.replace('mysql', 'mysql+pymysql'))
+
+
+def import_wordpress(xml_file):
+    import xml.etree.ElementTree as ET
+
+    tree = ET.parse(xml_file)
+    ns = dict(i[1] for i in ET.iterparse(xml_file, events=['start-ns']))
+    # users
+    users = []
+    for i in tree.iter('{{{wp}}}author'.format(**ns)):
+        users.append(
+            {
+                'username': i.find('wp:author_login', ns).text,
+                'email': i.find('wp:author_email', ns).text,
+                'display_name': i.find('wp:author_display_name', ns).text,
+            }
+        )
+    # articles
+    articles = []
+    for i in tree.iter('item'.format(**ns)):
+        articles.append(
+            {
+                'subject': i.find('title', ns).text,
+                'content': i.find('content:encoded', ns).text,
+                'created_at': i.find('wp:post_date', ns).text,
+                'user_id': i.find('dc:creator', ns).text,
+            }
+        )
+    # TODO image
+    print(users)
+    print(articles)
 
 
 if __name__ == '__main__':
@@ -61,3 +93,6 @@ if __name__ == '__main__':
             .values(password=hash_password(args['<password>']))
         )
         print(f'Password changed for {args["<username>"]}')
+    elif args['import']:
+        if args['wordpress']:
+            import_wordpress(args['<path_to_Wordpress.xml>'])

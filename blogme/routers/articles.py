@@ -2,6 +2,7 @@
 # coding: utf-8
 # yc@2019/12/13
 
+import uuid
 import mimetypes
 from typing import List
 
@@ -102,6 +103,6 @@ async def upload_file(
         ext = f'.{exts[0].lower()}'
     else:
         ext = mimetypes.guess_extension(f.content_type) or ''
-    filename = f'{utils.random_hex()}{ext}'
+    filename = f'{uuid.uuid4()}{ext}'
     await utils.save_uploaded_file(f, dest_dir.joinpath(filename))
     return {'url': f'{settings.MEDIA_URL}{filename}'}
