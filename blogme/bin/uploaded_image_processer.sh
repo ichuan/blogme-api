@@ -13,6 +13,10 @@ MAX_WIDTH=1600
 SCRIPT_DIR="$(cd "`dirname "${BASH_SOURCE[0]}"`">/dev/null 2>&1 && pwd)"
 UPLOAD_DIR="`dirname ${SCRIPT_DIR}`/public/upload"
 
+logit() {
+  echo "[`date '+%F %T'`] $*"
+}
+
 
 process_image() {
   img="$1"
@@ -20,11 +24,11 @@ process_image() {
   [ ! -f "$img" ] && return
   [ -f "$flag" ] || {
     touch "$flag"
-    echo "Processing $img"
+    logit Processing $img
     start_at=`date +%s`
     convert "$img" -auto-orient -strip -quality $QUALITY -resize "${MAX_WIDTH}>" "$img"
     time_cost=$(( `date +%s` - $start_at ))
-    echo "Cost ${time_cost}s"
+    logit Cost ${time_cost}s
   }
 }
 
