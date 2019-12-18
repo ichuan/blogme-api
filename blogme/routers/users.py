@@ -20,7 +20,7 @@ database = utils.get_db()
 
 
 @router.get('', response_model=List[UserRead])
-async def user_list():
+async def user_list(me: UserInDB = Depends(auth.get_current_user)):
     query = select([User]).limit(settings.PAGE_SIZE).order_by(User.c.id.desc())
     return await database.fetch_all(query)
 
