@@ -7,7 +7,7 @@ import pathlib
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
-DATABASE_URL = 'mysql://root:@localhost/blogme'
+DATABASE_URL = 'mysql://root:@localhost/blogme?charset=utf8mb4'
 
 PAGE_SIZE = 10
 
