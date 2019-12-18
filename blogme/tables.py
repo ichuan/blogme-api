@@ -14,6 +14,7 @@ User = sa.Table(
     metadata,
     sa.Column('id', sa.BigInteger, primary_key=True),
     sa.Column('username', sa.String(length=150), unique=True),
+    sa.Column('display_name', sa.String(length=150)),
     sa.Column('password', sa.String(length=128)),
     sa.Column('email', sa.String(length=254)),
     sa.Column('is_active', sa.Boolean, default=True),
