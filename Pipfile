@@ -19,6 +19,7 @@ python-multipart = "*"
 pyjwt = "*"
 passlib = {extras = ["bcrypt"],version = "*"}
 aiofiles = "*"
+supervisor = "*"
 
 [requires]
 python_version = "3.7"
