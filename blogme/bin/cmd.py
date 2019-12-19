@@ -36,7 +36,7 @@ def import_wordpress(xml_file):
     from blogme.tables import User, Article
     from blogme.auth import hash_password
     from blogme import settings
-    from sqlalchemy.sql import select, update
+    from sqlalchemy import select, update
 
     tree = ET.parse(xml_file)
     ns = dict(i[1] for i in ET.iterparse(xml_file, events=['start-ns']))

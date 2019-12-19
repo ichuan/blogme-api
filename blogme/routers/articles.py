@@ -7,7 +7,7 @@ import mimetypes
 from typing import List
 
 from fastapi import APIRouter, Depends, File, UploadFile
-from sqlalchemy.sql import select, update, delete
+from sqlalchemy import select, update, delete
 
 from blogme import settings, utils, auth
 from blogme.tables import Article
@@ -34,9 +34,14 @@ async def is_article_belongs_to_user(article_id, user_id):
 
 
 @router.get('', response_model=List[ArticleRead])
-async def article_list():
-    query = select([Article]).limit(settings.PAGE_SIZE).order_by(Article.c.id.desc())
-    return await database.fetch_all(query)
+async def article_list(params: dict = Depends(utils.list_params), user_id: int = None):
+    query, need_reverse = utils.get_paged_query(Article, params)
+    if user_id is not None:
+        query = query.where(Article.c.user_id == user_id)
+    rows = await database.fetch_all(query)
+    if need_reverse:
+        rows.reverse()
+    return rows
 
 
 @router.post('', response_model=ArticleRead)

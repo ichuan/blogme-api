@@ -7,10 +7,9 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
-from sqlalchemy import func
-from sqlalchemy.sql import update, select, delete
+from sqlalchemy import func, update, select, delete
 
-from blogme import settings, utils, auth
+from blogme import utils, auth
 from blogme.models.user import UserInDB, UserRead, UserCreate, UserUpdate
 from blogme.models.token import Token
 from blogme.tables import User, Article
@@ -21,9 +20,15 @@ database = utils.get_db()
 
 
 @router.get('', response_model=List[UserRead])
-async def user_list(me: UserInDB = Depends(auth.get_current_user)):
-    query = select([User]).limit(settings.PAGE_SIZE).order_by(User.c.id.desc())
-    return await database.fetch_all(query)
+async def user_list(
+    me: UserInDB = Depends(auth.get_current_user),
+    params: dict = Depends(utils.list_params),
+):
+    query, need_reverse = utils.get_paged_query(User, params)
+    rows = await database.fetch_all(query)
+    if need_reverse:
+        rows.reverse()
+    return rows
 
 
 @router.post('', response_model=UserRead)

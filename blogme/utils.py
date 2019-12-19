@@ -5,10 +5,12 @@
 import os
 from datetime import datetime
 from functools import partial
+from typing import Tuple, Any
 
 import aiofiles
 import databases
-from fastapi import HTTPException
+from fastapi import HTTPException, Query
+from sqlalchemy import select
 
 from blogme import settings
 
@@ -40,3 +42,36 @@ async def save_uploaded_file(src_file, dest_path):
                 break
             await f.write(data)
     os.replace(tmp_path, dest_path)
+
+
+async def list_params(
+    limit: int = Query(settings.PAGE_SIZE, ge=1, le=100),
+    starting_after: int = Query(None, gt=0),
+    ending_before: int = Query(None, gt=0),
+):
+    return {
+        'limit': limit,
+        'starting_after': starting_after,
+        'ending_before': ending_before,
+    }
+
+
+def get_paged_query(table, params) -> Tuple[Any, bool]:
+    '''
+    returns (query, need_reverse)
+    see #6
+    '''
+    query = select([table]).limit(params['limit'])
+    need_reverse = False
+    if params['ending_before']:
+        need_reverse = True
+        query = query.where(table.c.id > params['ending_before']).order_by(
+            table.c.id.asc()
+        )
+    elif params['starting_after']:
+        query = query.where(table.c.id < params['starting_after']).order_by(
+            table.c.id.desc()
+        )
+    else:
+        query = query.order_by(table.c.id.desc())
+    return query, need_reverse
