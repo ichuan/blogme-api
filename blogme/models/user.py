@@ -14,8 +14,8 @@ class _Base(BaseModel):
     '''
 
     username: str
-    display_name: str = None
-    email: Optional[EmailStr] = None
+    display_name: str = ''
+    email: Optional[EmailStr] = ''
     is_superuser: bool = False
 
 

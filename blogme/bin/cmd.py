@@ -51,8 +51,8 @@ def import_wordpress(xml_file):
             User.insert().values(
                 username=username,
                 password=hash_password(username),
-                email=i.find('wp:author_email', ns).text,
-                display_name=i.find('wp:author_display_name', ns).text,
+                email=i.find('wp:author_email', ns).text or '',
+                display_name=i.find('wp:author_display_name', ns).text or '',
                 is_superuser=bool(j == 0),
             )
         )
@@ -62,8 +62,8 @@ def import_wordpress(xml_file):
     for i in tree.iter('item'.format(**ns)):
         res = conn.execute(
             Article.insert().values(
-                subject=i.find('title', ns).text,
-                content=i.find('content:encoded', ns).text,
+                subject=i.find('title', ns).text or '',
+                content=i.find('content:encoded', ns).text or '',
                 created_at=i.find('wp:post_date', ns).text,
                 user_id=username_to_id[i.find('dc:creator', ns).text],
             )
@@ -76,6 +76,8 @@ def import_wordpress(xml_file):
 
     def download_image(obj):
         url = obj.group(1)
+        if not url.startswith(('https://', 'http://')):
+            return f'[未上传的图片]'
         ext = url.rpartition('.')[-1]
         local_name = f'{uuid.uuid4()}.{ext}'
         local_path = dest_dir.joinpath(local_name)
