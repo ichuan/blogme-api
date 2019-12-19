@@ -12,7 +12,7 @@ metadata = sa.MetaData()
 User = sa.Table(
     'user',
     metadata,
-    sa.Column('id', sa.BigInteger, primary_key=True),
+    sa.Column('id', sa.BigInteger, primary_key=True, index=True),
     sa.Column('username', sa.String(length=150), unique=True),
     sa.Column('display_name', sa.String(length=150)),
     sa.Column('password', sa.String(length=128)),
@@ -26,7 +26,7 @@ User = sa.Table(
 Article = sa.Table(
     'article',
     metadata,
-    sa.Column('id', sa.BigInteger, primary_key=True),
+    sa.Column('id', sa.BigInteger, primary_key=True, index=True),
     sa.Column('user_id', sa.ForeignKey(User.c.id), index=True),
     sa.Column('subject', sa.String(length=255)),
     sa.Column('content', sa.Text),
