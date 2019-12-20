@@ -19,3 +19,11 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
 MEDIA_DIR = 'public/upload/'
 MEDIA_URL = '/public/upload/'
+
+CORS_ORIGINS = [
+    'http://localhost:3000',
+    'https://yanxinyi.me',
+    'https://yanyichen.com',
+    'https://52mandy.com',
+    'https://ichuan.net',
+]
