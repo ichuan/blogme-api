@@ -5,16 +5,12 @@
 import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, constr
 
 
 class _Base(BaseModel):
-    '''
-    DB, Create, Update 三状态下共享的字段
-    '''
-
-    username: str
-    display_name: str = ''
+    username: constr(max_length=150)
+    display_name: constr(max_length=150) = ''
     email: Optional[EmailStr] = ''
     is_superuser: bool = False
 

@@ -4,11 +4,11 @@
 
 import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
 
 
 class _Base(BaseModel):
-    subject: str
+    subject: constr(max_length=255)
     content: str
 
 
