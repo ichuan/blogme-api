@@ -34,3 +34,17 @@ Article = sa.Table(
     # https://github.com/encode/databases/issues/72
     sa.Column('created_at', sa.DateTime, default=datetime.datetime.utcnow),
 )
+
+KVStore = sa.Table(
+    'kvstore',
+    metadata,
+    sa.Column(
+        'id',
+        sa.String(length=128),
+        nullable=False,
+        default='',
+        index=True,
+        primary_key=True,
+    ),
+    sa.Column('value', sa.String(length=255), nullable=False, default=''),
+)
