@@ -23,7 +23,8 @@ class ArticleInDB(_Base):
 
 
 class ArticleRead(ArticleInDB):
-    pass
+    username: constr(max_length=150)
+    display_name: constr(max_length=150) = ''
 
 
 class ArticleUpdate(_Base):

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy import select, update, delete
 
 from blogme import settings, utils, auth
-from blogme.tables import Article
+from blogme.tables import Article, User
 from blogme.models.article import (
     ArticleRead,
     ArticleCreate,
@@ -36,6 +36,8 @@ async def is_article_belongs_to_user(article_id, user_id):
 @router.get('', response_model=List[ArticleRead])
 async def article_list(params: dict = Depends(utils.list_params), user_id: int = None):
     query, need_reverse = utils.get_paged_query(Article, params)
+    query = query.column(User.c.username).column(User.c.display_name)
+    query = query.select_from(Article.join(User, Article.c.user_id == User.c.id))
     if user_id is not None:
         query = query.where(Article.c.user_id == user_id)
     rows = await database.fetch_all(query)
@@ -59,13 +61,20 @@ async def article_create(
     last_id = await database.execute(query)
     return {
         'id': last_id,
+        'username': user.username,
+        'display_name': user.display_name,
         **spec,
     }
 
 
 @router.get('/{article_id}', response_model=ArticleRead)
 async def article_detail(article_id: int):
-    article = await database.fetch_one(Article.select(Article.c.id == article_id))
+    query = (
+        select([Article, User.c.username, User.c.display_name])
+        .where(Article.c.id == article_id)
+        .select_from(Article.join(User, Article.c.user_id == User.c.id))
+    )
+    article = await database.fetch_one(query)
     if article:
         return article
     raise utils.HTTP400(detail='No such article')
