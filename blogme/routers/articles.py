@@ -16,6 +16,7 @@ from blogme.models.article import (
     ArticleCreate,
     ArticleUpdate,
     ArticleFile,
+    ArticleArchiveRead,
 )
 from blogme.models.user import UserInDB
 
@@ -40,6 +41,30 @@ async def article_list(params: dict = Depends(utils.list_params), user_id: int =
     query = query.select_from(Article.join(User, Article.c.user_id == User.c.id))
     if user_id is not None:
         query = query.where(Article.c.user_id == user_id)
+    rows = await database.fetch_all(query)
+    if need_reverse:
+        rows.reverse()
+    return rows
+
+
+@router.get('/archive', response_model=List[ArticleArchiveRead])
+async def article_list_archive(
+    params: dict = Depends(utils.list_params), user_id: int = None
+):
+    query, need_reverse = utils.get_paged_query(Article, params)
+    query = query.column(User.c.username).column(User.c.display_name)
+    query = query.select_from(Article.join(User, Article.c.user_id == User.c.id))
+    if user_id is not None:
+        query = query.where(Article.c.user_id == user_id)
+    query = query.with_only_columns(
+        [
+            Article.c.id,
+            Article.c.subject,
+            Article.c.created_at,
+            User.c.username,
+            User.c.display_name,
+        ]
+    )
     rows = await database.fetch_all(query)
     if need_reverse:
         rows.reverse()

@@ -27,6 +27,14 @@ class ArticleRead(ArticleInDB):
     display_name: constr(max_length=150) = ''
 
 
+class ArticleArchiveRead(BaseModel):
+    id: int
+    subject: str = ''
+    username: str = ''
+    display_name: str = ''
+    created_at: datetime.datetime
+
+
 class ArticleUpdate(_Base):
     pass
 
