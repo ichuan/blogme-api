@@ -20,6 +20,7 @@ pyjwt = "*"
 passlib = {extras = ["bcrypt"],version = "*"}
 aiofiles = "*"
 supervisor = "*"
+bleach = "*"
 
 [requires]
 python_version = "3.7"

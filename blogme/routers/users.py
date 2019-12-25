@@ -48,6 +48,8 @@ async def create_user(user: UserCreate, request: Request):
         raise utils.HTTP400(detail='Only superuser can create a user')
     spec.update(
         {
+            'username': utils.sanitize_html(spec['username']),
+            'display_name': utils.sanitize_html(spec['display_name']),
             'password': auth.hash_password(user.password),
             'is_active': True,
             'date_joined': utils.now(),
@@ -105,17 +107,19 @@ async def test_access_token(me: UserInDB = Depends(auth.get_current_user)):
 async def user_update(
     user_id: int, user: UserUpdate, me: UserInDB = Depends(auth.get_current_user)
 ):
-    if me.id != user_id or not me.is_superuser:
+    if me.id != user_id and not me.is_superuser:
         raise utils.HTTP400(detail='Cannot update other users')
-    spec = {
-        'username': user.username,
-    }
+    spec = {}
+    if user.display_name:
+        spec['display_name'] = utils.sanitize_html(user.display_name)
     if user.password:
         spec['password'] = auth.hash_password(user.password)
     if user.email:
         spec['email'] = user.email
     if user.is_superuser is not None and me.is_superuser:
         spec['is_superuser'] = user.is_superuser
+    if not spec:
+        raise utils.HTTP400(detail='Nothing to update')
     try:
         async with database.transaction():
             await database.execute(

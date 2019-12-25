@@ -9,6 +9,7 @@ from typing import Tuple, Any
 
 import aiofiles
 import databases
+import bleach
 from fastapi import HTTPException, Query
 from sqlalchemy import select
 
@@ -22,6 +23,56 @@ HTTP401 = partial(HTTPException, status_code=401)
 
 # 64KB
 CHUNK_SIZE = 64 * 1024
+HTML_ALLOWED_TAGS = [
+    'div',
+    'p',
+    'b',
+    'i',
+    'small',
+    'u',
+    'strike',
+    'a',
+    'li',
+    'ul',
+    'ol',
+    'hr',
+    'table',
+    'tr',
+    'td',
+    'thead',
+    'tbody',
+    'th',
+    'abbr',
+    'blockquote',
+    'code',
+    'em',
+    'strong',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'br',
+    'del',
+    'pre',
+    'figure',
+    'img',
+    'figcaption',
+    'span',
+]
+HTML_ALLOWED_ATTRIBUTES = [
+    'alt',
+    'href',
+    'title',
+    'src',
+    'width',
+    'height',
+    'class',
+    'data-trix-attachment',
+    'data-trix-content-type',
+    'data-trix-attributes',
+]
 
 
 def get_db():
@@ -75,3 +126,11 @@ def get_paged_query(table, params) -> Tuple[Any, bool]:
     else:
         query = query.order_by(table.c.id.desc())
     return query, need_reverse
+
+
+def sanitize_html(html):
+    return bleach.clean(
+        html,
+        tags=bleach.sanitizer.ALLOWED_TAGS + HTML_ALLOWED_TAGS,
+        attributes=HTML_ALLOWED_ATTRIBUTES,
+    )

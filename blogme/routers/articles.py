@@ -53,8 +53,8 @@ async def article_create(
     created_at = utils.now()
     spec = {
         'user_id': user.id,
-        'subject': article.subject,
-        'content': article.content,
+        'subject': utils.sanitize_html(article.subject),
+        'content': utils.sanitize_html(article.content),
         'created_at': created_at,
     }
     query = Article.insert().values(**spec)
@@ -86,9 +86,13 @@ async def article_update(
     article: ArticleUpdate,
     user: UserInDB = Depends(auth.get_current_user),
 ):
+    spec = {
+        'subject': utils.sanitize_html(article.subject),
+        'content': utils.sanitize_html(article.content),
+    }
     if await is_article_belongs_to_user(article_id, user.id):
         await database.execute(
-            update(Article).where(Article.c.id == article_id).values(**article.dict())
+            update(Article).where(Article.c.id == article_id).values(**spec)
         )
         return article
     raise utils.HTTP400(detail='No such article')
