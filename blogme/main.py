@@ -4,6 +4,7 @@
 
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
+from starlette.staticfiles import StaticFiles
 
 from blogme import utils, settings
 from blogme.routers import users, articles, config
@@ -31,6 +32,11 @@ async def shutdown():
     await database.disconnect()
 
 
+app.mount(
+    '/public',
+    StaticFiles(directory=settings.BASE_DIR.joinpath('public')),
+    name='public',
+)
 app.include_router(config.router, prefix='/config', tags=['Config'])
 app.include_router(users.router, prefix='/users', tags=['User'])
 app.include_router(articles.router, prefix='/articles', tags=['Article'])
