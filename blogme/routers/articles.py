@@ -115,7 +115,7 @@ async def article_update(
         'subject': utils.sanitize_html(article.subject),
         'content': utils.sanitize_html(article.content),
     }
-    if await is_article_belongs_to_user(article_id, user.id):
+    if user.is_superuser or await is_article_belongs_to_user(article_id, user.id):
         await database.execute(
             update(Article).where(Article.c.id == article_id).values(**spec)
         )
@@ -127,7 +127,7 @@ async def article_update(
 async def article_delete(
     article_id: int, user: UserInDB = Depends(auth.get_current_user)
 ):
-    if await is_article_belongs_to_user(article_id, user.id):
+    if user.is_superuser or await is_article_belongs_to_user(article_id, user.id):
         count = await database.execute(
             delete(Article).where(Article.c.id == article_id)
         )
