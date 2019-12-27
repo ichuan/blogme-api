@@ -1,0 +1,5 @@
+.venv/
+.git/
+blogme/public/upload/*
+logs/supervisord/childs/*
+logs/supervisord/supervisord.log

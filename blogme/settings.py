@@ -2,12 +2,18 @@
 # coding: utf-8
 # yc@2019/12/11
 
+import os
 import pathlib
 
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 
-DATABASE_URL = 'mysql://root:@localhost/blogme?charset=utf8mb4'
+DATABASE_USER = os.getenv('DB_USER', 'root')
+DATABASE_PASS = os.getenv('DB_PASS', '')
+DATABASE_HOST = os.getenv('DB_HOST', 'localhost')
+DATABASE_NAME = os.getenv('DB_NAME', 'blogme')
+
+DATABASE_URL = f'mysql://{DATABASE_USER}:{DATABASE_PASS}@{DATABASE_HOST}/{DATABASE_NAME}?charset=utf8mb4'
 
 PAGE_SIZE = 10
 
