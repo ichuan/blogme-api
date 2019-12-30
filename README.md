@@ -49,10 +49,10 @@ uvicorn blogme.main:app
 
 # Docker
 ## ENV
-- `DATABASE_USER`: default: root
-- `DATABASE_PASS`: default: "" (empty)
-- `DATABASE_HOST`: default: localhost
-- `DATABASE_NAME`: default: blogme
+- `DB_USER`: default: root
+- `DB_PASS`: default: "" (empty)
+- `DB_HOST`: default: localhost
+- `DB_NAME`: default: blogme
 - `SECRET_KEY`: default: (generated per container)
 - `ACCESS_TOKEN_EXPIRE_MINUTES`: default: 1440 (24 hours)
 - `CORS_ORIGINS`: space-seprated, default: "http://localhost:3000"
