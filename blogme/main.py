@@ -11,6 +11,7 @@ from blogme.routers import users, articles, config
 
 
 app = FastAPI(title='BlogMe API')
+subapi = FastAPI(title='BlogMe API', openapi_prefix='/api')
 database = utils.get_db()
 
 
@@ -37,6 +38,8 @@ app.mount(
     StaticFiles(directory=settings.BASE_DIR.joinpath('public')),
     name='public',
 )
-app.include_router(config.router, prefix='/config', tags=['Config'])
-app.include_router(users.router, prefix='/users', tags=['User'])
-app.include_router(articles.router, prefix='/articles', tags=['Article'])
+subapi.include_router(config.router, prefix='/config', tags=['Config'])
+subapi.include_router(users.router, prefix='/users', tags=['User'])
+subapi.include_router(articles.router, prefix='/articles', tags=['Article'])
+
+app.mount('/api', subapi)

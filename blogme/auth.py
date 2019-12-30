@@ -18,7 +18,7 @@ from blogme.tables import User
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 database = utils.get_db()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/users/access-token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/users/access-token')
 
 
 async def authenticate_user(username: str, password: str) -> Optional[UserInDB]:
