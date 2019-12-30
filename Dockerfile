@@ -1,7 +1,7 @@
 FROM python:3.7-slim
 EXPOSE 8000
 WORKDIR /app
-ENV PIPENV_VENV_IN_PROJECT=1
+ENV PIPENV_VENV_IN_PROJECT=1 PATH="/app/.venv/bin:$PATH"
 
 RUN apt update && apt install -y build-essential fswatch imagemagick
 
@@ -13,5 +13,4 @@ RUN pipenv sync
 # cleanup
 RUN rm -rf /var/lib/apt/lists/*
 
-ENV PATH="/app/.venv/bin:$PATH"
 ENTRYPOINT ["supervisord", "-nc", "/app/supervisord.conf"]

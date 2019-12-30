@@ -45,3 +45,14 @@ uvicorn blogme.main:app
 
 1. Export wordpress as `WordPress.XXXX-XX-XX.xml`
 2. `python blogme/bin/cmd.py import wordpress WordPress.XXXX-XX-XX.xml`
+
+
+# Docker
+## ENV
+- `DATABASE_USER`: default: root
+- `DATABASE_PASS`: default: "" (empty)
+- `DATABASE_HOST`: default: localhost
+- `DATABASE_NAME`: default: blogme
+- `SECRET_KEY`: default: (generated per container)
+- `ACCESS_TOKEN_EXPIRE_MINUTES`: default: 1440 (24 hours)
+- `CORS_ORIGINS`: space-seprated, default: "http://localhost:3000"
