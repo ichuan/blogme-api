@@ -2,7 +2,7 @@ FROM python:3.7-slim
 EXPOSE 8000
 WORKDIR /app
 
-RUN apt update && apt install -y --no-install-recommends build-essential fswatch imagemagick
+RUN apt update && apt install -y --no-install-recommends build-essential imagemagick
 
 COPY . /app/
 RUN pip install --no-cache-dir pipenv

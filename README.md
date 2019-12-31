@@ -5,7 +5,6 @@
 
 Deps:
 
-- [fswatch](https://github.com/emcrisostomo/fswatch/) 
 - imagemagick (convert)
 
 

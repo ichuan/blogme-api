@@ -1,6 +1,5 @@
 #!/bin/bash
 # deps:
-#   fswatch
 #   convert
 # https://github.com/ichuan/blogme-api/issues/3#issuecomment-566463033
 
@@ -11,7 +10,16 @@ MAX_WIDTH=1600
 
 # https://stackoverflow.com/a/246128
 SCRIPT_DIR="$(cd "`dirname "${BASH_SOURCE[0]}"`">/dev/null 2>&1 && pwd)"
-UPLOAD_DIR="`dirname ${SCRIPT_DIR}`/public/upload"
+API_LOG="${SCRIPT_DIR}/../../logs/api.log"
+
+if ggrep -V >/dev/null 2>&1; then
+  # macOS: brew install grep
+  GREP=ggrep
+else
+  # Linux
+  GREP=grep
+fi
+
 
 logit() {
   echo "[`date '+%F %T'`] $*"
@@ -33,6 +41,6 @@ process_image() {
 }
 
 
-fswatch -0 --event Renamed --event Updated --extended --insensitive --exclude ".*" \
-  --include "\.(jpg|jpeg|png|webp|bmp)$" ${UPLOAD_DIR} | while read -d "" event; \
-  do process_image "$event"; done
+tail -F "$API_LOG" | $GREP --color=never --line-buffered -oP '(?<=Uploaded file: ).+\.(jpe?g|png|gif)$' | while read line; do
+  process_image "$line"
+done;

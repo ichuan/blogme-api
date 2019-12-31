@@ -2,7 +2,8 @@
 # coding: utf-8
 # yc@2019/12/13
 
-import os
+import logging
+import logging.handlers
 from datetime import datetime
 from functools import partial
 from typing import Tuple, Any
@@ -17,6 +18,7 @@ from blogme import settings
 
 
 database = databases.Database(settings.DATABASE_URL)
+logger = logging.getLogger('blogme')
 
 HTTP400 = partial(HTTPException, status_code=400)
 HTTP401 = partial(HTTPException, status_code=401)
@@ -83,16 +85,25 @@ def now():
     return datetime.utcnow()
 
 
+def setup_logging():
+    logger.setLevel(getattr(logging, settings.LOG_LEVEL.upper()))
+    # 100MB
+    handler = logging.handlers.RotatingFileHandler(
+        filename=settings.LOG_FILE, maxBytes=104857600, backupCount=5,
+    )
+    handler.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s %(message)s'))
+    logger.addHandler(handler)
+
+
 async def save_uploaded_file(src_file, dest_path):
     await src_file.seek(0)
-    tmp_path = f'{dest_path}.swp'
-    async with aiofiles.open(tmp_path, 'wb+') as f:
+    async with aiofiles.open(dest_path, 'wb+') as f:
         while True:
             data = await src_file.read(CHUNK_SIZE)
             if not data:
                 break
             await f.write(data)
-    os.replace(tmp_path, dest_path)
+    logger.info(f'Uploaded file: {dest_path}')
 
 
 async def list_params(

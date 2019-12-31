@@ -13,6 +13,7 @@ from blogme.routers import users, articles, config
 app = FastAPI(title='BlogMe API')
 subapi = FastAPI(title='BlogMe API', openapi_prefix='/api')
 database = utils.get_db()
+utils.setup_logging()
 
 
 app.add_middleware(
