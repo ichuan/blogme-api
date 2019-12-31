@@ -34,7 +34,7 @@ process_image() {
     touch "$flag"
     logit Processing $img
     start_at=`date +%s`
-    convert "$img" -auto-orient -strip -quality $QUALITY -resize "${MAX_WIDTH}>" "$img"
+    convert "$img" -auto-orient -strip -interlace Plane -quality $QUALITY -resize "${MAX_WIDTH}>" "$img"
     time_cost=$(( `date +%s` - $start_at ))
     logit Cost ${time_cost}s
   }
