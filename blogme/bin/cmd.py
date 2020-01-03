@@ -9,13 +9,16 @@ Usage:
     cmd.py create superuser [--username=NAME] [--password=PASS]
     cmd.py changepassword <username> <password>
     cmd.py import wordpress <path_to_Wordpress.xml>
+    cmd.py import djblog <path_to_dumped.json> [--urlprefix=URL]
 
 Options:
     -h --help         Show this screen
     --username=USER   Username [default: root]
     --password=PASS   Raw password for the user [default: R00t!]
+    --urlprefix=URL   Used for downloading original image
 '''
 
+import json
 
 from docopt import docopt
 
@@ -29,7 +32,6 @@ def get_db():
 
 def import_wordpress(xml_file):
     import re
-    import os
     import uuid
     import urllib.request
     import xml.etree.ElementTree as ET
@@ -81,9 +83,7 @@ def import_wordpress(xml_file):
         ext = url.rpartition('.')[-1]
         local_name = f'{uuid.uuid4()}.{ext}'
         local_path = dest_dir.joinpath(local_name)
-        local_path_swp = f'{local_path}.swp'
-        urllib.request.urlretrieve(url, local_path_swp)
-        os.replace(local_path_swp, local_path)
+        urllib.request.urlretrieve(url, local_path)
         return f'<img src="{settings.MEDIA_URL}{local_name}" />'
 
     for pk in article_ids:
@@ -92,6 +92,93 @@ def import_wordpress(xml_file):
             select([Article.c.content]).select_from(Article).where(Article.c.id == pk)
         ).fetchone()
         content = re.sub(r'<img src="([^"]+)[^>]+>', download_image, content)
+        conn.execute(update(Article).values(content=content).where(Article.c.id == pk))
+    print('All done')
+
+
+def import_djblog(json_file, url_prefix):
+    '''
+    ./manage.py dumpdata --indent=2 --natural > djblog.json
+    '''
+    import re
+    import uuid
+    import urllib.request
+    from blogme.tables import User, Article
+    from blogme import settings
+    from blogme.auth import hash_password
+    from sqlalchemy import select, update
+
+    if not url_prefix:
+        print('--urlprefix missing')
+        return
+
+    conn = get_db().connect()
+
+    arr = json.load(open(json_file))
+    users, articles = [], []
+    # old => new
+    user_id_map = {}
+    for i in arr:
+        if i['model'] == 'blog.post':
+            j = i['fields']
+            if len(j['title']) > 255:
+                j['content'] += j['title']
+                j['title'] = j['title'][:255]
+            articles.append(
+                {
+                    'subject': j['title'],
+                    'content': j['content'],
+                    'created_at': j['created_at'],
+                    'user_id': j['author'],
+                }
+            )
+        elif i['model'] == 'auth.user':
+            j = i['fields']
+            users.append(
+                {
+                    'username': j['username'],
+                    'display_name': j['username'],
+                    'email': j['email'],
+                    'password': hash_password(j['username']),
+                    'is_superuser': True,
+                    'last_login': j['last_login'],
+                    'date_joined': j['date_joined'],
+                    'old_id': i['pk'],
+                }
+            )
+    articles.sort(key=lambda i: i['created_at'])
+    users.sort(key=lambda i: i['old_id'])
+    # users
+    for u in users:
+        old_id = u.pop('old_id')
+        res = conn.execute(User.insert().values(**u))
+        user_id_map[old_id] = res.inserted_primary_key[0]
+    # articles
+    article_ids = []
+    for a in articles:
+        a['user_id'] = user_id_map[a['user_id']]
+        res = conn.execute(Article.insert().values(**a))
+        article_ids.append(res.inserted_primary_key[0])
+    print(f'Inserted {len(user_id_map)} users, {len(article_ids)} articles')
+    # image
+    print('Downloading images now...')
+    dest_dir = settings.BASE_DIR.joinpath(settings.MEDIA_DIR)
+
+    def download_image(obj):
+        path = obj.group(1)
+        url = f'{url_prefix}/{path}'
+        ext = url.rpartition('.')[-1]
+        local_name = f'{uuid.uuid4()}.{ext}'
+        local_path = dest_dir.joinpath(local_name)
+        urllib.request.urlretrieve(url, local_path)
+        return f'<img src="{settings.MEDIA_URL}{local_name}" />'
+
+    for pk in article_ids:
+        print(f'Processing {pk}')
+        content, *_ = conn.execute(
+            select([Article.c.content]).select_from(Article).where(Article.c.id == pk)
+        ).fetchone()
+        content = re.sub(r'<img.+src="/([^"]+)[^>]+>', download_image, content)
         conn.execute(update(Article).values(content=content).where(Article.c.id == pk))
     print('All done')
 
@@ -134,3 +221,5 @@ if __name__ == '__main__':
     elif args['import']:
         if args['wordpress']:
             import_wordpress(args['<path_to_Wordpress.xml>'])
+        elif args['djblog']:
+            import_djblog(args['<path_to_dumped.json>'], args['--urlprefix'])
