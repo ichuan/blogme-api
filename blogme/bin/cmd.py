@@ -167,7 +167,11 @@ def import_djblog(json_file, url_prefix):
     def download_image(obj):
         path = obj.group(1)
         url = f'{url_prefix}/{path}'
-        ext = url.rpartition('.')[-1]
+        if '.' in path:
+            ext = path.rpartition('.')[-1]
+        else:
+            # random guess
+            ext = 'jpg'
         local_name = f'{uuid.uuid4()}.{ext}'
         local_path = dest_dir.joinpath(local_name)
         urllib.request.urlretrieve(url, local_path)
