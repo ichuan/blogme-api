@@ -6,11 +6,12 @@ import uuid
 import mimetypes
 from typing import List
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile, Header
 from sqlalchemy import select, update, delete
+from starlette.responses import Response
 
 from blogme import settings, utils, auth
-from blogme.tables import Article, User
+from blogme.tables import Article, User, KVStore
 from blogme.models.article import (
     ArticleRead,
     ArticleCreate,
@@ -69,6 +70,38 @@ async def article_list_archive(
     if need_reverse:
         rows.reverse()
     return rows
+
+
+@router.get(
+    '/feed',
+    responses={
+        200: {
+            'content': {
+                'application/xml': {
+                    'example': '<?xml version="1.0"?><rss version="2.0">...</rss>'
+                }
+            },
+            'description': 'RSS XML',
+        }
+    },
+)
+async def article_list_feed(host: str = Header(None)):
+    query = (
+        select([Article, User.c.username, User.c.display_name])
+        .select_from(Article.join(User, Article.c.user_id == User.c.id))
+        .limit(10)
+        .order_by(Article.c.id.desc())
+    )
+    rows = await database.fetch_all(query)
+    # default site title and desc: site.name, site.desc in KVStore
+    confs = {}
+    query = select([KVStore]).where(KVStore.c.id.in_(('site.name', 'site.desc')))
+    for r in await database.fetch_all(query):
+        confs[r.id] = r.value
+    xml = utils.make_rss_xml(
+        host or 'localhost', rows, confs.get('site.name'), confs.get('site.desc')
+    )
+    return Response(content=xml, media_type='application/rss+xml; charset=utf-8')
 
 
 @router.post('', response_model=ArticleRead)

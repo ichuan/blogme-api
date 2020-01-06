@@ -2,11 +2,15 @@
 # coding: utf-8
 # yc@2019/12/13
 
+import io
 import logging
 import logging.handlers
 from datetime import datetime
 from functools import partial
 from typing import Tuple, Any
+import xml.etree.ElementTree as ET
+from contextlib import contextmanager
+import email.utils
 
 import aiofiles
 import databases
@@ -145,3 +149,69 @@ def sanitize_html(html):
         tags=bleach.sanitizer.ALLOWED_TAGS + HTML_ALLOWED_TAGS,
         attributes=HTML_ALLOWED_ATTRIBUTES,
     )
+
+
+def get_rfc822_datetime(dt):
+    return email.utils.format_datetime(dt)
+
+
+def make_rss_xml(
+    host,
+    articles,
+    title=None,
+    desc=None,
+    link_tpl='https://{host}/',
+    url_tpl='https://{host}/#/p/{id}',
+    feed_path='feed',
+):
+    '''
+    spec: https://cyber.harvard.edu/rss/rss.html
+    validator: https://validator.w3.org/feed/
+    '''
+    tb = ET.TreeBuilder()
+
+    @contextmanager
+    def tag_parent(name, attrs=None, data=None):
+        tb.start(name, attrs or {})
+        if data is not None:
+            tb.data(data)
+        yield
+        tb.end(name)
+
+    def tag(name, attrs=None, data=None):
+        with tag_parent(name, attrs, data):
+            pass
+
+    with tag_parent(
+        'rss', {'version': '2.0', 'xmlns:atom': 'http://www.w3.org/2005/Atom'}
+    ):
+        with tag_parent('channel'):
+            website = link_tpl.format(host=host)
+            tag('title', data=title or '')
+            tag('link', data=website)
+            tag('description', data=desc or '')
+            if articles:
+                _dt = get_rfc822_datetime(articles[0]['created_at'])
+                tag('pubDate', data=_dt)
+                tag('lastBuildDate', data=_dt)
+            tag('generator', data='blogme')
+            # refresh minutes
+            tag('ttl', data=f'{60*24}')
+            tag('atom:link', {'href': f'{website}{feed_path}', 'rel': 'self'})
+            for i in articles:
+                with tag_parent('item'):
+                    url = url_tpl.format(host=host, id=i.id)
+                    tag('title', data=i['subject'])
+                    tag('link', data=url)
+                    tag('description', data=i['content'])
+                    tag('pubDate', data=get_rfc822_datetime(i['created_at']))
+                    tag(
+                        'dc:creator',
+                        {'xmlns:dc': 'http://purl.org/dc/elements/1.1/'},
+                        i['display_name'] or i['username'],
+                    )
+                    tag('guid', data=url)
+    root = tb.close()
+    with io.StringIO() as out:
+        ET.ElementTree(root).write(out, encoding='unicode', xml_declaration=True)
+        return out.getvalue()
