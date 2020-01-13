@@ -24,7 +24,9 @@ PAGE_SIZE = 10
 # openssl rand -hex 32
 SECRET_KEY = os.getenv('SECRET_KEY', os.urandom(32).hex())
 ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', 60 * 24))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(
+    os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', 60 * 24 * 365)
+)
 
 MEDIA_DIR = 'public/upload/'
 MEDIA_URL = '/public/upload/'
